@@ -1,0 +1,110 @@
+---
+title: "README"
+author: "João"
+date: "09/09/2020"
+output: html_document
+---
+
+## Extracting data
+
+```{r libraries, message=FALSE, warning = FALSE, paged.print = FALSE, include = FALSE}
+library(dplyr)
+library(knitr)
+```
+
+Firstly, the code get the column names from the features file directly into a character vector.
+
+```{r setwd_1, include = FALSE}
+opts_knit$set(root.dir = 'C:/Users/joaov/Documents/Estudos/Programação/R/Getting and Cleaning Data/UCI HAR Dataset')
+```
+
+```{r names}
+nomes <- read.table('features.txt')[,2]
+```
+
+## Test data
+
+Then, R extracts the main test data from X_test.txt and loads it into a data frame. Also, we set the column names from the vector nomes.
+
+```{r setwd_2, include = FALSE}
+opts_knit$set(root.dir = './test')
+```
+
+```{r test_data}
+test <- read.table('X_test.txt')
+colnames(test) <- nomes
+```
+
+Using regex, we look for columns that have the strings "mean" e "std" on the column names. 
+
+```{r test_mean_std}
+test <- test[grep('.mean.|.std.', nomes, ignore.case = TRUE, value = TRUE)]
+```
+
+Finally, we add a column using with the activities number for every record.
+
+```{r test_activities}
+test <- cbind(read.table('y_test.txt'), test)
+```
+
+## Train data
+
+And so we repeat the same process to the train file. So, we start extracting the data from X_train.txt and set the column names from the vector nomes.
+
+```{r setwd_3, include = FALSE}
+opts_knit$set(root.dir = 'C:/Users/joaov/Documents/Estudos/Programação/R/Getting and Cleaning Data/UCI HAR Dataset/train')
+```
+
+```{r train_data}
+train <- read.table('X_train.txt')
+colnames(train) <- nomes
+```
+
+Now, getting the column names with "mean" e "std".
+
+```{r train_mean_std}
+train <- train[grep('.mean.|.std.', nomes, ignore.case = TRUE, value = TRUE)]
+```
+
+Putting the activities number.
+
+```{r train_activities}
+train <- cbind(read.table('y_train.txt'), train)
+```
+
+## Merging and summarizing the data
+
+First, we merge the data using rbind (i.e. putting the records together by adding the lines)
+
+```{r finding mean}
+dados <- rbind(test, train)
+```
+
+Now, R loads the activity labels into a table.
+
+```{r setwd_4, include = FALSE}
+opts_knit$set(root.dir = 'C:/Users/joaov/Documents/Estudos/Programação/R/Getting and Cleaning Data/UCI HAR Dataset')
+```
+
+```{r labels}
+activity <- read.table('activity_labels.txt')
+``` 
+
+So, we set the first column, until now activity number, to activity label. To match the number with the labels, it's used a left join and only extracted the desired column from the resulting data. The name of the column is also changed.
+
+```{r merging, message=FALSE, warning = FALSE, paged.print = FALSE}
+dados[1] <- left_join(dados, activity)[ncol(left_join(dados, activity))]
+names(dados)[1] = 'activity'
+```
+
+Finally, to get the tidy data with the mean of every activity on every column, we use the summarise_all function. The resulting dataframe is stored into a variable called resumo.
+
+```{r summarizing}
+resumo <- dados %>% group_by(activity) %>% summarise_all(mean)
+```
+
+The resulting data is the tidy data requested and is exported to a txt file.
+
+```{r export}
+write.table(resumo, file = "tidy_data.txt", sep = "\t", row.names = FALSE, col.names = TRUE)
+```
