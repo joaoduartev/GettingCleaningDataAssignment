@@ -1,98 +1,82 @@
 ---
 title: "CodeBook"
-author: "João"
+author: "Jo�o"
 date: "09/09/2020"
 output: html_document
 ---
 
 ## Extracting data
 
-```{r libraries, message=FALSE, warning = FALSE, paged.print = FALSE, include = FALSE}
+```
 library(dplyr)
 library(knitr)
 ```
 
 nomes is the variable that stores the column names extracted from the features file.
 
-```{r setwd_1, include = FALSE}
-opts_knit$set(root.dir = 'C:/Users/joaov/Documents/Estudos/Programação/R/Getting and Cleaning Data/UCI HAR Dataset')
 ```
-
-```{r names}
 nomes <- read.table('features.txt')[,2]
 ```
 
 test is the variable that stores the main data, loaded from X_test.
 
-```{r setwd_2, include = FALSE}
-opts_knit$set(root.dir = './test')
 ```
-
-```{r test_data}
 test <- read.table('X_test.txt')
 colnames(test) <- nomes
 ```
 
 test is transformed by getting only the subset that has "mean" and "std" on the column name.
 
-```{r test_mean_std}
+```
 test <- test[grep('.mean.|.std.', nomes, ignore.case = TRUE, value = TRUE)]
 ```
 
 test is again transformed by adding a new column with the activies number.
 
-```{r test_activities}
+```
 test <- cbind(read.table('y_test.txt'), test)
 ```
 
 train is the variable that stores the main data, loaded from X_train.
 
-```{r setwd_3, include = FALSE}
-opts_knit$set(root.dir = 'C:/Users/joaov/Documents/Estudos/Programação/R/Getting and Cleaning Data/UCI HAR Dataset/train')
 ```
-
-```{r train_data}
 train <- read.table('X_train.txt')
 colnames(train) <- nomes
 ```
 
 train is transformed by getting only the subset that has "mean" and "std" on the column name.
 
-```{r train_mean_std}
+```
 train <- train[grep('.mean.|.std.', nomes, ignore.case = TRUE, value = TRUE)]
 ```
 
 train is again transformed by adding a new column with the activies number.
 
-```{r train_activities}
+```
 train <- cbind(read.table('y_train.txt'), train)
 ```
 
 dados the variable that stores the merging of both train and test data.
 
-```{r finding mean}
+```
 dados <- rbind(test, train)
 ```
 
 activity is the variable that store the activities labels.
 
-```{r setwd_4, include = FALSE}
-opts_knit$set(root.dir = 'C:/Users/joaov/Documents/Estudos/Programação/R/Getting and Cleaning Data/UCI HAR Dataset')
 ```
-
-```{r labels}
 activity <- read.table('activity_labels.txt')
 ```
 
 dados is transformed by changing the activities number to activities labels.
 
-```{r merging, message=FALSE, warning = FALSE, paged.print = FALSE}
+```
 dados[1] <- left_join(dados, activity)[ncol(left_join(dados, activity))]
 names(dados)[1] = 'activity'
 ```
 
 resumo is the variable that stores the tidy data with the summarized data.
 
-```{r summarizing}
+```
 resumo <- dados %>% group_by(activity) %>% summarise_all(mean)
 ```
